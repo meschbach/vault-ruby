@@ -203,7 +203,7 @@ module Vault
     # @param [String] iam_auth_header_vaule
     #
     # @return [Secret]
-    def aws_ec2_iam(role, iam_auth_header_vaule)
+    def aws_ec2_iam(role, iam_auth_header_vaule, options = {})
       svc = Aws::STS::Client.new(region: 'global')
 
       sts_request = svc.build_request('get_caller_identity')
@@ -228,7 +228,9 @@ module Vault
         iam_request_headers: request_headers,
         iam_request_body: request_body
       }
-      json = client.post('/v1/auth/aws/login', JSON.fast_generate(payload))
+      path = options[:path] || '/auth/aws'
+      target_resource = '/v1/' + path + '/login'
+      json = client.post( target_resource, JSON.fast_generate(payload))
       secret = Secret.decode(json)
       client.token = secret.auth.client_token
       return secret
